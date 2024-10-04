@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const playlistContainer = document.getElementById('playlistContainer');
 
     const tracks = [
-        { title: 'Ghost', src: 'https://flacdb.netlify.app/audio/jb_ghost.mp3', img: 'https://flacdb.netlify.app/img/jb_ghost.jpg' },
-        { title: 'Track 2', src: 'https://example.com/track2.mp3', img: 'https://example.com/track2.jpg' },
-        { title: 'Track 3', src: 'https://example.com/track3.mp3', img: 'https://example.com/track3.jpg' }
+        { title: 'Track 1', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
+        { title: 'Track 2', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
+        { title: 'Track 3', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' }
     ];
 
     function loadTrack(index) {
@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
             playerImage.src = tracks[currentTrackIndex].img;
             trackTitle.textContent = tracks[currentTrackIndex].title;
             updatePlaylistHighlight();
+
+            // Add error handling for image loading
+            playerImage.onerror = () => {
+                playerImage.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
+                console.error('Error loading image for track:', tracks[currentTrackIndex].title);
+            };
+
+            // Add error handling for audio loading
+            audioPlayer.onerror = () => {
+                trackTitle.textContent = 'Error loading audio';
+                console.error('Error loading audio for track:', tracks[currentTrackIndex].title);
+            };
         }
     }
 
