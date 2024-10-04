@@ -61,6 +61,34 @@ body {
     line-height: 40px;
 }
 
+.playlist-container {
+    margin-top: 20px;
+    text-align: left;
+}
+
+#playlist {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#playlist li {
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#playlist li:hover {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+#playlist li.active {
+    background-color: rgba(76, 175, 80, 0.3);
+    font-weight: bold;
+}
+
 .bubble {
     position: fixed;
     border-radius: 50%;
