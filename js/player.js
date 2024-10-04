@@ -139,6 +139,11 @@ progressBar.parentElement.addEventListener("click", setProgress);
 togglePlaylistBtn.addEventListener("click", togglePlaylist);
 playlistSearchInput.addEventListener("input", filterPlaylist);
 
+// Restore close menu button functionality
+document.querySelector("#closePlaylist").addEventListener("click", () => {
+    playlistContainer.classList.remove('show');
+});
+
 // Initialize
 window.addEventListener("load", () => {
     loadMusic(musicIndex);
