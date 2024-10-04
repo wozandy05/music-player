@@ -1,47 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const baseUrl = document.body.dataset.baseUrl;
     const audioPlayer = new Audio();
-    let currentTrack = 0;
-    let tracks = [];
 
     const playerImage = document.getElementById('playerImage');
     const trackTitle = document.getElementById('trackTitle');
     const playPauseBtn = document.getElementById('playPauseBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
 
-    // Fetch tracks from andy.largent.org
-    fetch(`${baseUrl}/music.json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            tracks = data;
-            loadTrack(currentTrack);
-        })
-        .catch(error => {
-            console.error('Error fetching tracks:', error);
-            trackTitle.textContent = 'Error loading tracks. Please try again later.';
-        });
-
-    function loadTrack(trackIndex) {
-        if (tracks.length === 0) {
-            return;
-        }
-        const track = tracks[trackIndex];
-        audioPlayer.src = `${baseUrl}${track.url}`;
-        playerImage.src = `${baseUrl}${track.image}`;
-        trackTitle.textContent = track.title;
+    function loadTrack() {
+        audioPlayer.src = 'https://flacdb.netlify.app/audio/jb_ghost.mp3';
+        playerImage.src = 'https://flacdb.netlify.app/img/jb_ghost.jpg';
+        trackTitle.textContent = 'Ghost';
         playPauseBtn.innerHTML = '&#9658;'; // Play icon
     }
 
     function playPause() {
-        if (tracks.length === 0) {
-            return;
-        }
         if (audioPlayer.paused) {
             audioPlayer.play();
             playPauseBtn.innerHTML = '&#10074;&#10074;'; // Pause icon
@@ -51,27 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function nextTrack() {
-        if (tracks.length === 0) {
-            return;
-        }
-        currentTrack = (currentTrack + 1) % tracks.length;
-        loadTrack(currentTrack);
-        playPause();
-    }
-
-    function prevTrack() {
-        if (tracks.length === 0) {
-            return;
-        }
-        currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
-        loadTrack(currentTrack);
-        playPause();
-    }
-
     playPauseBtn.addEventListener('click', playPause);
-    nextBtn.addEventListener('click', nextTrack);
-    prevBtn.addEventListener('click', prevTrack);
+
+    // Load the track when the page loads
+    loadTrack();
 
     // Bubble animation
     function createBubble() {
@@ -81,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.style.top = `${Math.random() * 100}vh`;
         bubble.style.width = `${Math.random() * 50 + 20}px`;
         bubble.style.height = bubble.style.width;
+
+        // Create an array of colors
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+        
+        // Randomly select a color from the array
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Apply the selected color to the bubble's background-color with transparency
+        bubble.style.backgroundColor = `${randomColor}50`;  // 50 is for 31% opacity in hex
+
         document.body.appendChild(bubble);
 
         setTimeout(() => {
