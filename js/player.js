@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progressBar');
     const currentTimeDisplay = document.getElementById('currentTime');
     const durationDisplay = document.getElementById('duration');
+    const playlistSearch = document.getElementById('playlistSearch');
 
     const themes = {
         neon: {
@@ -313,11 +314,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
+    function searchPlaylist() {
+        const searchTerm = playlistSearch.value.toLowerCase();
+        const playlistItems = playlist.getElementsByTagName('li');
+        
+        for (let item of playlistItems) {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        }
+    }
+
     playPauseBtn.addEventListener('click', playPause);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
     togglePlaylistBtn.addEventListener('click', togglePlaylist);
     closePlaylistBtn.addEventListener('click', togglePlaylist);
+    playlistSearch.addEventListener('input', searchPlaylist);
 
     mainAudio.addEventListener('ended', playNext);
     mainAudio.addEventListener('timeupdate', updateProgressBar);
