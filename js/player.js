@@ -1,352 +1,146 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const mainAudio = new Audio();
-    let currentTrackIndex = 0;
-    let isPlaying = false;
+// DOM Elements
+const playerContainer = document.querySelector(".player-container");
+const musicImg = document.querySelector("#musicImg");
+const musicName = document.querySelector("#musicName");
+const musicArtist = document.querySelector("#musicArtist");
+const playPauseBtn = document.querySelector("#playPauseBtn");
+const prevBtn = document.querySelector("#prevBtn");
+const nextBtn = document.querySelector("#nextBtn");
+const mainAudio = document.createElement("audio");
+const progressBar = document.querySelector("#progressBar");
+const currentTimeEl = document.querySelector("#currentTime");
+const durationEl = document.querySelector("#duration");
+const togglePlaylistBtn = document.querySelector("#togglePlaylist");
+const playlistContainer = document.querySelector("#playlistContainer");
+const playlistEl = document.querySelector("#playlist");
+const playlistSearchInput = document.querySelector("#playlistSearch");
 
-    const musicImg = document.getElementById('musicImg');
-    const musicName = document.getElementById('musicName');
-    const musicArtist = document.getElementById('musicArtist');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const playlist = document.getElementById('playlist');
-    const togglePlaylistBtn = document.getElementById('togglePlaylist');
-    const playlistContainer = document.getElementById('playlistContainer');
-    const closePlaylistBtn = document.getElementById('closePlaylist');
-    const progressBar = document.getElementById('progressBar');
-    const currentTimeDisplay = document.getElementById('currentTime');
-    const durationDisplay = document.getElementById('duration');
-    const playlistSearch = document.getElementById('playlistSearch');
+let musicIndex = 0;
+let isPlaying = false;
 
-    let db;
-    const dbName = 'MusicPlayerCache';
-    const dbVersion = 1;
-    const objectStoreName = 'tracks';
-
-    const request = indexedDB.open(dbName, dbVersion);
-
-    request.onerror = (event) => {
-        console.error('IndexedDB error:', event.target.error);
+function loadMusic(index) {
+    if (index < 0 || index >= allMusic.length) {
+        console.error("Invalid music index");
+        return;
+    }
+    
+    const music = allMusic[index];
+    console.log(`Loading music: ${music.name} by ${music.artist}`);
+    
+    musicName.textContent = music.name;
+    musicArtist.textContent = music.artist;
+    
+    const imgSrc = `https://colddb.netlify.app/images/${music.src}.jpg`;
+    const audioSrc = `https://colddb.netlify.app/audio/${music.src}.mp3`;
+    
+    musicImg.src = imgSrc;
+    mainAudio.src = audioSrc;
+    
+    musicImg.onerror = () => {
+        console.error(`Error loading image: ${imgSrc}`);
+        musicImg.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
     };
-
-    request.onsuccess = (event) => {
-        db = event.target.result;
-        console.log('IndexedDB opened successfully');
+    
+    mainAudio.onerror = (e) => {
+        console.error(`Error loading audio: ${audioSrc}`, e);
+        musicName.textContent = 'Error loading audio';
+        playNext();
     };
+    
+    document.title = `${music.name} - ${music.artist}`;
+}
 
-    request.onupgradeneeded = (event) => {
-        db = event.target.result;
-        const objectStore = db.createObjectStore(objectStoreName, { keyPath: 'src' });
-        console.log('Object store created');
-    };
+function playMusic() {
+    playerContainer.classList.add("playing");
+    playPauseBtn.querySelector("i").className = "fas fa-pause";
+    mainAudio.play();
+    isPlaying = true;
+}
 
-    function cacheItem(key, data) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                console.warn('IndexedDB not initialized. Skipping caching.');
-                resolve();
-                return;
-            }
-            const transaction = db.transaction([objectStoreName], 'readwrite');
-            const objectStore = transaction.objectStore(objectStoreName);
-            const request = objectStore.put({ src: key, data: data });
+function pauseMusic() {
+    playerContainer.classList.remove("playing");
+    playPauseBtn.querySelector("i").className = "fas fa-play";
+    mainAudio.pause();
+    isPlaying = false;
+}
 
-            request.onerror = (event) => {
-                console.error('Error caching item:', event.target.error);
-                reject(event.target.error);
-            };
+function prevMusic() {
+    musicIndex = (musicIndex - 1 + allMusic.length) % allMusic.length;
+    loadMusic(musicIndex);
+    playMusic();
+    updatePlaylist();
+}
 
-            request.onsuccess = () => {
-                console.log('Item cached successfully');
-                resolve();
-            };
+function nextMusic() {
+    musicIndex = (musicIndex + 1) % allMusic.length;
+    loadMusic(musicIndex);
+    playMusic();
+    updatePlaylist();
+}
+
+function updateProgress(e) {
+    const { currentTime, duration } = e.target;
+    const progressPercent = (currentTime / duration) * 100;
+    progressBar.style.width = `${progressPercent}%`;
+    
+    currentTimeEl.textContent = formatTime(currentTime);
+    durationEl.textContent = formatTime(duration);
+}
+
+function setProgress(e) {
+    const width = this.clientWidth;
+    const clickX = e.offsetX;
+    const duration = mainAudio.duration;
+    mainAudio.currentTime = (clickX / width) * duration;
+}
+
+function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
+function updatePlaylist() {
+    playlistEl.innerHTML = '';
+    allMusic.forEach((music, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${music.name} - ${music.artist}`;
+        li.classList.toggle('active', index === musicIndex);
+        li.addEventListener('click', () => {
+            musicIndex = index;
+            loadMusic(musicIndex);
+            playMusic();
+            updatePlaylist();
         });
-    }
-
-    function getCachedItem(key) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                console.warn('IndexedDB not initialized. Skipping cache retrieval.');
-                resolve(null);
-                return;
-            }
-            const transaction = db.transaction([objectStoreName], 'readonly');
-            const objectStore = transaction.objectStore(objectStoreName);
-            const request = objectStore.get(key);
-
-            request.onerror = (event) => {
-                console.error('Error getting cached item:', event.target.error);
-                reject(event.target.error);
-            };
-
-            request.onsuccess = (event) => {
-                if (event.target.result) {
-                    resolve(event.target.result.data);
-                } else {
-                    resolve(null);
-                }
-            };
-        });
-    }
-
-    async function loadMusic(indexNumb) {
-        console.log(`Loading music for index: ${indexNumb}`);
-        const track = allMusic[indexNumb - 1];
-        console.log(`Track details: `, track);
-        
-        musicName.innerText = track.name;
-        musicArtist.innerText = track.artist;
-        const imgSrc = `https://colddb.netlify.app/images/${track.src}.jpg`;
-        const audioSrc = `https://colddb.netlify.app/audio/${track.src}.mp3`;
-        
-        console.log(`Setting music image source: ${imgSrc}`);
-        console.log(`Setting audio source: ${audioSrc}`);
-        
-        musicImg.src = imgSrc;
-        mainAudio.src = audioSrc;
-
-        musicImg.onerror = () => {
-            console.error(`Error loading image: ${imgSrc}`);
-            musicImg.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
-        };
-
-        mainAudio.onerror = (e) => {
-            console.error(`Error loading audio: ${audioSrc}`, e);
-            musicName.textContent = 'Error loading audio';
-            playNext();
-        };
-
-        try {
-            await preloadTrack(audioSrc, imgSrc);
-        } catch (error) {
-            console.error('Error preloading track:', error);
-            const alternativeAudioSrc = `https://andy.largent.org/audio/${track.src}.mp3`;
-            console.log(`Attempting to load from alternative source: ${alternativeAudioSrc}`);
-            mainAudio.src = alternativeAudioSrc;
-        }
-    }
-
-    async function loadTrack(index) {
-        console.log(`Loading track at index: ${index}`);
-        if (index >= 0 && index < allMusic.length) {
-            currentTrackIndex = index;
-            console.log(`Current track index updated to: ${currentTrackIndex}`);
-            try {
-                await loadMusic(index + 1);
-                updatePlaylistHighlight();
-                preloadNextTracks(index);
-            } catch (error) {
-                console.error(`Error in loadTrack for index ${index}:`, error);
-                musicName.textContent = 'Error loading track';
-                playNext();
-            }
-        } else {
-            console.error(`Invalid track index: ${index}`);
-        }
-    }
-
-    async function preloadTrack(audioSrc, imgSrc) {
-        try {
-            const cachedAudio = await getCachedItem(audioSrc);
-            if (cachedAudio) {
-                console.log(`Audio found in cache: ${audioSrc}`);
-                mainAudio.src = cachedAudio;
-            } else {
-                console.log(`Fetching and caching audio: ${audioSrc}`);
-                const audioBlob = await fetchAndCache(audioSrc);
-                mainAudio.src = URL.createObjectURL(audioBlob);
-            }
-
-            const cachedImage = await getCachedItem(imgSrc);
-            if (cachedImage) {
-                console.log(`Image found in cache: ${imgSrc}`);
-                musicImg.src = cachedImage;
-            } else {
-                console.log(`Fetching and caching image: ${imgSrc}`);
-                await fetchAndCache(imgSrc);
-            }
-        } catch (error) {
-            console.error('Error preloading track:', error);
-            throw error;
-        }
-    }
-
-    async function fetchAndCache(url) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                try {
-                    await cacheItem(url, reader.result);
-                } catch (error) {
-                    console.error('Error caching item:', error);
-                }
-            };
-            reader.readAsDataURL(blob);
-            return blob;
-        } catch (error) {
-            console.error('Error fetching and caching:', error);
-            throw error;
-        }
-    }
-
-    async function preloadNextTracks(currentIndex) {
-        const numTracksToPreload = 3;
-        for (let i = 1; i <= numTracksToPreload; i++) {
-            const nextIndex = (currentIndex + i) % allMusic.length;
-            const nextTrack = allMusic[nextIndex];
-            const audioSrc = `https://colddb.netlify.app/audio/${nextTrack.src}.mp3`;
-            const imgSrc = `https://colddb.netlify.app/images/${nextTrack.img}.jpg`;
-
-            try {
-                await preloadTrack(audioSrc, imgSrc);
-            } catch (error) {
-                console.error(`Error preloading track ${nextIndex}:`, error);
-            }
-        }
-    }
-
-    function updatePlaylistHighlight() {
-        const playlistItems = playlist.getElementsByTagName('li');
-        for (let i = 0; i < playlistItems.length; i++) {
-            playlistItems[i].classList.remove('active');
-            if (i === currentTrackIndex) {
-                playlistItems[i].classList.add('active');
-            }
-        }
-    }
-
-    function playPause() {
-        console.log(`Play/Pause triggered. Current state: ${isPlaying ? 'Playing' : 'Paused'}`);
-        if (mainAudio.paused) {
-            console.log('Attempting to play audio');
-            mainAudio.play()
-                .then(() => {
-                    console.log('Audio playback started successfully');
-                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                    isPlaying = true;
-                })
-                .catch(error => {
-                    console.error('Error playing audio:', error);
-                    musicName.textContent = 'Error playing audio';
-                });
-        } else {
-            console.log('Pausing audio');
-            mainAudio.pause();
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-            isPlaying = false;
-        }
-    }
-
-    function playNext() {
-        const nextIndex = (currentTrackIndex + 1) % allMusic.length;
-        loadTrack(nextIndex);
-        if (isPlaying) {
-            mainAudio.play().catch(error => {
-                console.error('Error playing next track:', error);
-                playNext();
-            });
-        }
-    }
-
-    function playPrevious() {
-        const prevIndex = (currentTrackIndex - 1 + allMusic.length) % allMusic.length;
-        loadTrack(prevIndex);
-        if (isPlaying) mainAudio.play();
-    }
-
-    function createPlaylist() {
-        allMusic.forEach((track, index) => {
-            const li = document.createElement('li');
-            li.textContent = `${track.name} - ${track.artist}`;
-            li.addEventListener('click', () => {
-                console.log(`Clicked on track: ${track.name}`);
-                try {
-                    loadTrack(index);
-                    mainAudio.play()
-                        .then(() => {
-                            console.log(`Successfully started playing: ${track.name}`);
-                            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                            isPlaying = true;
-                        })
-                        .catch(error => {
-                            console.error(`Error playing audio for ${track.name}:`, error);
-                            musicName.textContent = `Error playing: ${track.name}`;
-                        });
-                } catch (error) {
-                    console.error(`Error loading track ${track.name}:`, error);
-                    musicName.textContent = `Error loading: ${track.name}`;
-                }
-            });
-            playlist.appendChild(li);
-        });
-    }
-
-    function togglePlaylist() {
-        playlistContainer.classList.toggle('show');
-        document.body.style.overflow = playlistContainer.classList.contains('show') ? 'hidden' : 'auto';
-    }
-
-    function updateProgressBar() {
-        const progress = (mainAudio.currentTime / mainAudio.duration) * 100;
-        progressBar.style.width = `${progress}%`;
-        currentTimeDisplay.textContent = formatTime(mainAudio.currentTime);
-        durationDisplay.textContent = formatTime(mainAudio.duration);
-    }
-
-    function formatTime(time) {
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    function createBubble() {
-        const bubble = document.createElement('div');
-        bubble.classList.add('bubble');
-        bubble.style.left = `${Math.random() * 100}vw`;
-        bubble.style.top = `${Math.random() * 100}vh`;
-        
-        const size = Math.random() * (50 - 10) + 10;
-        bubble.style.width = `${size}px`;
-        bubble.style.height = `${size}px`;
-
-        document.body.appendChild(bubble);
-
-        setTimeout(() => {
-            bubble.remove();
-        }, 4000);
-    }
-
-    function searchPlaylist() {
-        const searchTerm = playlistSearch.value.toLowerCase();
-        const playlistItems = playlist.getElementsByTagName('li');
-        
-        for (let item of playlistItems) {
-            const text = item.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        }
-    }
-
-    playPauseBtn.addEventListener('click', playPause);
-    prevBtn.addEventListener('click', playPrevious);
-    nextBtn.addEventListener('click', playNext);
-    togglePlaylistBtn.addEventListener('click', togglePlaylist);
-    closePlaylistBtn.addEventListener('click', togglePlaylist);
-    playlistSearch.addEventListener('input', searchPlaylist);
-
-    mainAudio.addEventListener('ended', playNext);
-    mainAudio.addEventListener('timeupdate', updateProgressBar);
-    mainAudio.addEventListener('loadedmetadata', () => {
-        durationDisplay.textContent = formatTime(mainAudio.duration);
+        playlistEl.appendChild(li);
     });
+}
 
-    createPlaylist();
-    loadTrack(0);
+function togglePlaylist() {
+    playlistContainer.classList.toggle('show');
+}
 
-    setInterval(createBubble, 100);
+function filterPlaylist() {
+    const searchTerm = playlistSearchInput.value.toLowerCase();
+    const playlistItems = playlistEl.querySelectorAll('li');
+    playlistItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+// Event Listeners
+playPauseBtn.addEventListener("click", () => isPlaying ? pauseMusic() : playMusic());
+prevBtn.addEventListener("click", prevMusic);
+nextBtn.addEventListener("click", nextMusic);
+mainAudio.addEventListener("timeupdate", updateProgress);
+mainAudio.addEventListener("ended", nextMusic);
+progressBar.parentElement.addEventListener("click", setProgress);
+togglePlaylistBtn.addEventListener("click", togglePlaylist);
+playlistSearchInput.addEventListener("input", filterPlaylist);
+
+// Initialize
+window.addEventListener("load", () => {
+    loadMusic(musicIndex);
+    updatePlaylist();
 });
