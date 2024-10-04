@@ -165,7 +165,7 @@ body {
     animation: float 4s ease-in-out infinite;
     z-index: 1;
     pointer-events: none;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 @keyframes float {

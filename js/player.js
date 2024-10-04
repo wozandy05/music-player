@@ -123,9 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (index >= 0 && index < allMusic.length) {
             currentTrackIndex = index;
             console.log(`Current track index updated to: ${currentTrackIndex}`);
-            loadMusic(index + 1);
-            updatePlaylistHighlight();
-            preloadNextTracks(index);
+            try {
+                await loadMusic(index + 1);
+                updatePlaylistHighlight();
+                preloadNextTracks(index);
+            } catch (error) {
+                console.error(`Error in loadTrack for index ${index}:`, error);
+                musicName.textContent = 'Error loading track';
+            }
         } else {
             console.error(`Invalid track index: ${index}`);
         }
@@ -242,16 +247,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.textContent = `${track.name} - ${track.artist}`;
             li.addEventListener('click', () => {
-                loadTrack(index);
-                mainAudio.play()
-                    .then(() => {
-                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                        isPlaying = true;
-                    })
-                    .catch(error => {
-                        console.error('Error playing audio:', error);
-                        musicName.textContent = 'Error playing audio';
-                    });
+                console.log(`Clicked on track: ${track.name}`);
+                try {
+                    loadTrack(index);
+                    mainAudio.play()
+                        .then(() => {
+                            console.log(`Successfully started playing: ${track.name}`);
+                            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                            isPlaying = true;
+                        })
+                        .catch(error => {
+                            console.error(`Error playing audio for ${track.name}:`, error);
+                            musicName.textContent = `Error playing: ${track.name}`;
+                        });
+                } catch (error) {
+                    console.error(`Error loading track ${track.name}:`, error);
+                    musicName.textContent = `Error loading: ${track.name}`;
+                }
             });
             playlist.appendChild(li);
         });
