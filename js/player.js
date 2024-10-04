@@ -131,28 +131,6 @@ function filterPlaylist() {
     });
 }
 
-// Bubble creation function
-function createBubble() {
-    const bubble = document.createElement('div');
-    bubble.classList.add('bubble');
-    
-    const size = Math.random() * 100 + 50;
-    bubble.style.width = `${size}px`;
-    bubble.style.height = `${size}px`;
-    
-    bubble.style.left = `${Math.random() * 100}vw`;
-    bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
-    
-    document.body.appendChild(bubble);
-    
-    setTimeout(() => {
-        bubble.remove();
-    }, 4000);
-}
-
-// Create bubbles periodically
-setInterval(createBubble, 300);
-
 // Event Listeners
 playPauseBtn.addEventListener("click", () => isPlaying ? pauseMusic() : playMusic());
 prevBtn.addEventListener("click", prevMusic);
