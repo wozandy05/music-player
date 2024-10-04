@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const playlist = document.getElementById('playlist');
+    const togglePlaylistBtn = document.getElementById('togglePlaylist');
+    const playlistContainer = document.getElementById('playlistContainer');
 
     const tracks = [
         { title: 'Ghost', src: 'https://flacdb.netlify.app/audio/jb_ghost.mp3', img: 'https://flacdb.netlify.app/img/jb_ghost.jpg' },
@@ -42,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error playing audio:', error);
                 trackTitle.textContent = 'Error playing audio';
             });
-            playPauseBtn.innerHTML = '&#10074;&#10074;'; // Pause icon
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
             isPlaying = true;
         } else {
             audioPlayer.pause();
-            playPauseBtn.innerHTML = '&#9658;'; // Play icon
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
             isPlaying = false;
         }
     }
@@ -73,9 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function togglePlaylist() {
+        playlistContainer.classList.toggle('show');
+        togglePlaylistBtn.textContent = playlistContainer.classList.contains('show') ? 'Hide Playlist' : 'Show Playlist';
+    }
+
     playPauseBtn.addEventListener('click', playPause);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
+    togglePlaylistBtn.addEventListener('click', togglePlaylist);
 
     audioPlayer.addEventListener('ended', playNext);
 
