@@ -14,6 +14,7 @@ const togglePlaylistBtn = document.querySelector("#togglePlaylist");
 const playlistContainer = document.querySelector("#playlistContainer");
 const playlistEl = document.querySelector("#playlist");
 const playlistSearchInput = document.querySelector("#playlistSearch");
+const closePlaylistBtn = document.querySelector("#closePlaylist");
 
 let musicIndex = 0;
 let isPlaying = false;
@@ -145,6 +146,12 @@ document.addEventListener('click', function(event) {
     if (!playlistContainer.contains(event.target) && event.target !== togglePlaylistBtn) {
         playlistContainer.classList.remove('show');
     }
+});
+
+// Close playlist button functionality
+closePlaylistBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    playlistContainer.classList.remove('show');
 });
 
 // Initialize
