@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+</head>
+<body data-base-url="{{ base_url }}">
+    <div class="player-container">
+        <div class="player-image">
+            <img id="playerImage" src="" alt="Album Art">
+        </div>
+        <h2 id="trackTitle">Loading...</h2>
+        <div class="player-controls">
+            <button id="prevBtn">&#9668;</button>
+            <button id="playPauseBtn">&#9658;</button>
+            <button id="nextBtn">&#9658;</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+</body>
+</html>
