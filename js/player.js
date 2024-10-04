@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playlist = document.getElementById('playlist');
     const togglePlaylistBtn = document.getElementById('togglePlaylist');
     const playlistContainer = document.getElementById('playlistContainer');
+    const closePlaylistBtn = document.getElementById('closePlaylist');
 
     const tracks = [
         { title: 'Track 1', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
@@ -98,13 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function togglePlaylist() {
         console.log('Toggle playlist button clicked');
         playlistContainer.classList.toggle('show');
-        togglePlaylistBtn.textContent = playlistContainer.classList.contains('show') ? 'Hide Playlist' : 'Show Playlist';
+        document.body.style.overflow = playlistContainer.classList.contains('show') ? 'hidden' : 'auto';
     }
 
     playPauseBtn.addEventListener('click', playPause);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
     togglePlaylistBtn.addEventListener('click', togglePlaylist);
+    closePlaylistBtn.addEventListener('click', togglePlaylist);
 
     audioPlayer.addEventListener('ended', playNext);
 
