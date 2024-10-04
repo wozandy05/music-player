@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Color Bubble Beats</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
 </head>
-<body data-base-url="{{ base_url }}">
+<body>
     <div class="player-container">
         <div class="player-image">
-            <img id="playerImage" src="{{ url_for('static', filename='img/default-album-art.png') }}" alt="Album Art">
+            <img id="playerImage" src="https://flacdb.netlify.app/img/jb_ghost.jpg" alt="Album Art">
         </div>
         <h2 id="trackTitle">Loading...</h2>
         <div class="player-controls">
@@ -19,6 +19,6 @@
             <button id="nextBtn">&#9658;</button>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <script src="/js/player.js"></script>
 </body>
 </html>
