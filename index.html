@@ -14,10 +14,20 @@
             <img id="playerImage" src="https://flacdb.netlify.app/img/jb_ghost.jpg" alt="Album Art">
         </div>
         <h2 id="trackTitle">Loading...</h2>
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <div class="time-display">
+            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+        </div>
         <div class="player-controls">
             <button id="prevBtn"><i class="fas fa-step-backward"></i></button>
             <button id="playPauseBtn"><i class="fas fa-play"></i></button>
             <button id="nextBtn"><i class="fas fa-step-forward"></i></button>
+        </div>
+        <div class="volume-control">
+            <i class="fas fa-volume-up" id="volumeIcon"></i>
+            <input type="range" id="volumeSlider" min="0" max="100" value="100">
         </div>
         <button id="togglePlaylist">Toggle Playlist</button>
         <div id="playlistContainer" class="playlist-container">

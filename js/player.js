@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePlaylistBtn = document.getElementById('togglePlaylist');
     const playlistContainer = document.getElementById('playlistContainer');
     const closePlaylistBtn = document.getElementById('closePlaylist');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const durationDisplay = document.getElementById('duration');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeIcon = document.getElementById('volumeIcon');
 
     const tracks = [
         { title: 'Track 1', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
@@ -102,17 +107,61 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = playlistContainer.classList.contains('show') ? 'hidden' : 'auto';
     }
 
+    function updateProgressBar() {
+        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        progressBar.style.width = `${progress}%`;
+        currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+        durationDisplay.textContent = formatTime(audioPlayer.duration);
+    }
+
+    function formatTime(time) {
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function setVolume() {
+        audioPlayer.volume = volumeSlider.value / 100;
+        updateVolumeIcon();
+    }
+
+    function updateVolumeIcon() {
+        if (audioPlayer.volume === 0) {
+            volumeIcon.className = 'fas fa-volume-mute';
+        } else if (audioPlayer.volume < 0.5) {
+            volumeIcon.className = 'fas fa-volume-down';
+        } else {
+            volumeIcon.className = 'fas fa-volume-up';
+        }
+    }
+
+    function toggleMute() {
+        if (audioPlayer.volume === 0) {
+            audioPlayer.volume = volumeSlider.value / 100;
+        } else {
+            audioPlayer.volume = 0;
+        }
+        updateVolumeIcon();
+    }
+
     playPauseBtn.addEventListener('click', playPause);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
     togglePlaylistBtn.addEventListener('click', togglePlaylist);
     closePlaylistBtn.addEventListener('click', togglePlaylist);
+    volumeSlider.addEventListener('input', setVolume);
+    volumeIcon.addEventListener('click', toggleMute);
 
     audioPlayer.addEventListener('ended', playNext);
+    audioPlayer.addEventListener('timeupdate', updateProgressBar);
+    audioPlayer.addEventListener('loadedmetadata', () => {
+        durationDisplay.textContent = formatTime(audioPlayer.duration);
+    });
 
     // Initialize the player
     createPlaylist();
     loadTrack(0);
+    setVolume();
 
     // Bubble animation (unchanged)
     function createBubble() {
