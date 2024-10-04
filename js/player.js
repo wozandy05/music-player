@@ -17,16 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTimeDisplay = document.getElementById('currentTime');
     const durationDisplay = document.getElementById('duration');
 
-    const allMusic = [
-        {
-            name: "By Your Side",
-            artist: "Jonas Blue",
-            img: "by_your_side",
-            src: "by_your_side"
-        },
-        // Add more tracks here
-    ];
-
     const themes = {
         neon: {
             colors: ['#ff00ff', '#00ffff', '#ff0000', '#0000ff', '#00ff00', '#ffff00'],
@@ -42,29 +32,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentTheme = themes.darkPurple;
 
-    function isItemCached(key) {
-        return localStorage.getItem(key) !== null;
-    }
+    // Initialize IndexedDB
+    let db;
+    const dbName = 'MusicPlayerCache';
+    const dbVersion = 1;
+    const objectStoreName = 'tracks';
+
+    const request = indexedDB.open(dbName, dbVersion);
+
+    request.onerror = (event) => {
+        console.error('IndexedDB error:', event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+        db = event.target.result;
+        console.log('IndexedDB opened successfully');
+    };
+
+    request.onupgradeneeded = (event) => {
+        db = event.target.result;
+        const objectStore = db.createObjectStore(objectStoreName, { keyPath: 'src' });
+        console.log('Object store created');
+    };
 
     function cacheItem(key, data) {
-        try {
-            localStorage.setItem(key, data);
-        } catch (e) {
-            console.error('Error caching item:', e);
-            if (e.name === 'QuotaExceededError') {
-                clearOldestCachedItem();
-                localStorage.setItem(key, data);
-            }
-        }
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([objectStoreName], 'readwrite');
+            const objectStore = transaction.objectStore(objectStoreName);
+            const request = objectStore.put({ src: key, data: data });
+
+            request.onerror = (event) => {
+                console.error('Error caching item:', event.target.error);
+                reject(event.target.error);
+            };
+
+            request.onsuccess = () => {
+                console.log('Item cached successfully');
+                resolve();
+            };
+        });
     }
 
-    function clearOldestCachedItem() {
-        if (localStorage.length > 0) {
-            const oldestKey = Object.keys(localStorage).reduce((a, b) => 
-                localStorage.getItem(a) < localStorage.getItem(b) ? a : b
-            );
-            localStorage.removeItem(oldestKey);
-        }
+    function getCachedItem(key) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([objectStoreName], 'readonly');
+            const objectStore = transaction.objectStore(objectStoreName);
+            const request = objectStore.get(key);
+
+            request.onerror = (event) => {
+                console.error('Error getting cached item:', event.target.error);
+                reject(event.target.error);
+            };
+
+            request.onsuccess = (event) => {
+                if (event.target.result) {
+                    resolve(event.target.result.data);
+                } else {
+                    resolve(null);
+                }
+            };
+        });
     }
 
     function loadMusic(indexNumb){
@@ -79,64 +106,76 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Setting audio source: ${audioSrc}`);
         mainAudio.src = audioSrc;
 
-        // Add error handling for image loading
         musicImg.onerror = () => {
             console.error(`Error loading image: ${imgSrc}`);
             musicImg.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
         };
 
-        // Add error handling for audio loading
         mainAudio.onerror = () => {
             console.error(`Error loading audio: ${audioSrc}`);
             musicName.textContent = 'Error loading audio';
         };
     }
 
-    function loadTrack(index) {
+    async function loadTrack(index) {
         console.log(`Loading track at index: ${index}`);
         if (index >= 0 && index < allMusic.length) {
             currentTrackIndex = index;
             console.log(`Current track index updated to: ${currentTrackIndex}`);
-            loadMusic(index + 1);  // loadMusic uses 1-based index
+            loadMusic(index + 1);
             updatePlaylistHighlight();
             preloadNextTracks(index);
 
             const audioSrc = mainAudio.src;
             const imgSrc = musicImg.src;
 
-            if (isItemCached(audioSrc)) {
-                console.log(`Audio found in cache: ${audioSrc}`);
-                mainAudio.src = localStorage.getItem(audioSrc);
-            } else {
-                console.log(`Fetching and caching audio: ${audioSrc}`);
-                fetch(audioSrc)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => cacheItem(audioSrc, reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-            }
+            try {
+                const cachedAudio = await getCachedItem(audioSrc);
+                if (cachedAudio) {
+                    console.log(`Audio found in cache: ${audioSrc}`);
+                    mainAudio.src = cachedAudio;
+                } else {
+                    console.log(`Fetching and caching audio: ${audioSrc}`);
+                    const response = await fetch(audioSrc);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        try {
+                            await cacheItem(audioSrc, reader.result);
+                        } catch (error) {
+                            console.error('Error caching audio:', error);
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                }
 
-            if (isItemCached(imgSrc)) {
-                console.log(`Image found in cache: ${imgSrc}`);
-                musicImg.src = localStorage.getItem(imgSrc);
-            } else {
-                console.log(`Fetching and caching image: ${imgSrc}`);
-                fetch(imgSrc)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => cacheItem(imgSrc, reader.result);
-                        reader.readAsDataURL(blob);
-                    });
+                const cachedImage = await getCachedItem(imgSrc);
+                if (cachedImage) {
+                    console.log(`Image found in cache: ${imgSrc}`);
+                    musicImg.src = cachedImage;
+                } else {
+                    console.log(`Fetching and caching image: ${imgSrc}`);
+                    const response = await fetch(imgSrc);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        try {
+                            await cacheItem(imgSrc, reader.result);
+                        } catch (error) {
+                            console.error('Error caching image:', error);
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            } catch (error) {
+                console.error('Error loading track:', error);
             }
         } else {
             console.error(`Invalid track index: ${index}`);
         }
     }
 
-    function preloadNextTracks(currentIndex) {
+    async function preloadNextTracks(currentIndex) {
         const numTracksToPreload = 3;
         for (let i = 1; i <= numTracksToPreload; i++) {
             const nextIndex = (currentIndex + i) % allMusic.length;
@@ -144,24 +183,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioSrc = `https://colddb.netlify.app/audio/${nextTrack.src}.mp3`;
             const imgSrc = `https://colddb.netlify.app/images/${nextTrack.img}.jpg`;
 
-            if (!isItemCached(audioSrc)) {
-                fetch(audioSrc)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => cacheItem(audioSrc, reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-            }
+            try {
+                const cachedAudio = await getCachedItem(audioSrc);
+                if (!cachedAudio) {
+                    const response = await fetch(audioSrc);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        try {
+                            await cacheItem(audioSrc, reader.result);
+                        } catch (error) {
+                            console.error('Error caching audio:', error);
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                }
 
-            if (!isItemCached(imgSrc)) {
-                fetch(imgSrc)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => cacheItem(imgSrc, reader.result);
-                        reader.readAsDataURL(blob);
-                    });
+                const cachedImage = await getCachedItem(imgSrc);
+                if (!cachedImage) {
+                    const response = await fetch(imgSrc);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        try {
+                            await cacheItem(imgSrc, reader.result);
+                        } catch (error) {
+                            console.error('Error caching image:', error);
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            } catch (error) {
+                console.error('Error preloading track:', error);
             }
         }
     }
