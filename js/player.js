@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     function loadTrack(index) {
+        console.log(`Loading track at index: ${index}`);
         if (index >= 0 && index < tracks.length) {
             currentTrackIndex = index;
             audioPlayer.src = tracks[currentTrackIndex].src;
@@ -26,21 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
             trackTitle.textContent = tracks[currentTrackIndex].title;
             updatePlaylistHighlight();
 
-            // Add error handling for image loading
             playerImage.onerror = () => {
-                playerImage.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
                 console.error('Error loading image for track:', tracks[currentTrackIndex].title);
+                playerImage.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
             };
 
-            // Add error handling for audio loading
             audioPlayer.onerror = () => {
-                trackTitle.textContent = 'Error loading audio';
                 console.error('Error loading audio for track:', tracks[currentTrackIndex].title);
+                trackTitle.textContent = 'Error loading audio';
             };
+        } else {
+            console.error(`Invalid track index: ${index}`);
         }
     }
 
     function updatePlaylistHighlight() {
+        console.log(`Updating playlist highlight for track: ${currentTrackIndex}`);
         const playlistItems = playlist.getElementsByTagName('li');
         for (let i = 0; i < playlistItems.length; i++) {
             playlistItems[i].classList.remove('active');
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playPause() {
+        console.log('Play/Pause button clicked');
         if (audioPlayer.paused) {
             audioPlayer.play().catch(error => {
                 console.error('Error playing audio:', error);
@@ -66,20 +69,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playNext() {
+        console.log('Next button clicked');
         loadTrack((currentTrackIndex + 1) % tracks.length);
         if (isPlaying) audioPlayer.play();
     }
 
     function playPrevious() {
+        console.log('Previous button clicked');
         loadTrack((currentTrackIndex - 1 + tracks.length) % tracks.length);
         if (isPlaying) audioPlayer.play();
     }
 
     function createPlaylist() {
+        console.log('Creating playlist');
         tracks.forEach((track, index) => {
+            console.log(`Adding track to playlist: ${track.title}`);
             const li = document.createElement('li');
             li.textContent = track.title;
             li.addEventListener('click', () => {
+                console.log(`Playlist item clicked: ${track.title}`);
                 loadTrack(index);
                 if (isPlaying) audioPlayer.play();
             });
@@ -88,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function togglePlaylist() {
+        console.log('Toggle playlist button clicked');
         playlistContainer.classList.toggle('show');
         togglePlaylistBtn.textContent = playlistContainer.classList.contains('show') ? 'Hide Playlist' : 'Show Playlist';
     }
