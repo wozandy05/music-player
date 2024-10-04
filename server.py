@@ -3,25 +3,22 @@ import socketserver
 import os
 import sys
 
-def find_free_port(start_port=8000, max_port=9000):
-    for port in range(start_port, max_port):
-        try:
-            with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as s:
-                return port
-        except OSError:
-            continue
-    return None
-
-PORT = find_free_port()
-if PORT is None:
-    print("Error: Unable to find a free port. Please try again later.")
-    sys.exit(1)
-
+PORT = 8081
 DIRECTORY = "."
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
+
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept')
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
 
 if __name__ == "__main__":
     print(f"Attempting to start server on port {PORT}")
