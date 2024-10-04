@@ -17,12 +17,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const durationDisplay = document.getElementById('duration');
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeIcon = document.getElementById('volumeIcon');
+    const themeSelect = document.getElementById('themeSelect');
 
     const tracks = [
         { title: 'Track 1', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
         { title: 'Track 2', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' },
         { title: 'Track 3', src: 'https://freesound.org/data/previews/612/612095_5674468-lq.mp3', img: 'https://via.placeholder.com/300' }
     ];
+
+    const themes = {
+        default: {
+            colors: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'],
+            opacity: '50',
+            size: { min: 20, max: 70 }
+        },
+        neon: {
+            colors: ['#ff00ff', '#00ffff', '#ff0000', '#0000ff', '#00ff00', '#ffff00'],
+            opacity: '80',
+            size: { min: 10, max: 50 }
+        },
+        pastel: {
+            colors: ['#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF'],
+            opacity: '70',
+            size: { min: 30, max: 80 }
+        },
+        monochrome: {
+            colors: ['#FFFFFF', '#CCCCCC', '#999999', '#666666', '#333333'],
+            opacity: '40',
+            size: { min: 15, max: 60 }
+        }
+    };
+
+    let currentTheme = themes.default;
 
     function loadTrack(index) {
         console.log(`Loading track at index: ${index}`);
@@ -144,6 +170,32 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVolumeIcon();
     }
 
+    function createBubble() {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        bubble.style.left = `${Math.random() * 100}vw`;
+        bubble.style.top = `${Math.random() * 100}vh`;
+        
+        const size = Math.random() * (currentTheme.size.max - currentTheme.size.min) + currentTheme.size.min;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+
+        const randomColor = currentTheme.colors[Math.floor(Math.random() * currentTheme.colors.length)];
+        bubble.style.backgroundColor = `${randomColor}${currentTheme.opacity}`;
+
+        document.body.appendChild(bubble);
+
+        setTimeout(() => {
+            bubble.remove();
+        }, 4000);
+    }
+
+    function changeTheme() {
+        const selectedTheme = themeSelect.value;
+        currentTheme = themes[selectedTheme];
+        console.log(`Theme changed to: ${selectedTheme}`);
+    }
+
     playPauseBtn.addEventListener('click', playPause);
     prevBtn.addEventListener('click', playPrevious);
     nextBtn.addEventListener('click', playNext);
@@ -151,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closePlaylistBtn.addEventListener('click', togglePlaylist);
     volumeSlider.addEventListener('input', setVolume);
     volumeIcon.addEventListener('click', toggleMute);
+    themeSelect.addEventListener('change', changeTheme);
 
     audioPlayer.addEventListener('ended', playNext);
     audioPlayer.addEventListener('timeupdate', updateProgressBar);
@@ -163,25 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTrack(0);
     setVolume();
 
-    // Bubble animation (unchanged)
-    function createBubble() {
-        const bubble = document.createElement('div');
-        bubble.classList.add('bubble');
-        bubble.style.left = `${Math.random() * 100}vw`;
-        bubble.style.top = `${Math.random() * 100}vh`;
-        bubble.style.width = `${Math.random() * 50 + 20}px`;
-        bubble.style.height = bubble.style.width;
-
-        const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        bubble.style.backgroundColor = `${randomColor}50`;
-
-        document.body.appendChild(bubble);
-
-        setTimeout(() => {
-            bubble.remove();
-        }, 4000);
-    }
-
+    // Start bubble animation
     setInterval(createBubble, 100);
 });
