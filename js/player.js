@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function cacheItem(key, data) {
         return new Promise((resolve, reject) => {
+            if (!db) {
+                console.warn('IndexedDB not initialized. Skipping caching.');
+                resolve();
+                return;
+            }
             const transaction = db.transaction([objectStoreName], 'readwrite');
             const objectStore = transaction.objectStore(objectStoreName);
             const request = objectStore.put({ src: key, data: data });
@@ -76,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getCachedItem(key) {
         return new Promise((resolve, reject) => {
+            if (!db) {
+                console.warn('IndexedDB not initialized. Skipping cache retrieval.');
+                resolve(null);
+                return;
+            }
             const transaction = db.transaction([objectStoreName], 'readonly');
             const objectStore = transaction.objectStore(objectStoreName);
             const request = objectStore.get(key);
@@ -95,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function loadMusic(indexNumb){
+    async function loadMusic(indexNumb) {
         console.log(`Loading music for index: ${indexNumb}`);
         musicName.innerText = allMusic[indexNumb - 1].name;
         musicArtist.innerText = allMusic[indexNumb - 1].artist;
@@ -116,6 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(`Error loading audio: ${audioSrc}`);
             musicName.textContent = 'Error loading audio';
         };
+
+        try {
+            await preloadTrack(audioSrc, imgSrc);
+        } catch (error) {
+            console.error('Error preloading track:', error);
+        }
     }
 
     async function loadTrack(index) {
@@ -126,53 +142,54 @@ document.addEventListener('DOMContentLoaded', () => {
             loadMusic(index + 1);
             updatePlaylistHighlight();
             preloadNextTracks(index);
-
-            const audioSrc = mainAudio.src;
-            const imgSrc = musicImg.src;
-
-            try {
-                const cachedAudio = await getCachedItem(audioSrc);
-                if (cachedAudio) {
-                    console.log(`Audio found in cache: ${audioSrc}`);
-                    mainAudio.src = cachedAudio;
-                } else {
-                    console.log(`Fetching and caching audio: ${audioSrc}`);
-                    const response = await fetch(audioSrc);
-                    const blob = await response.blob();
-                    const reader = new FileReader();
-                    reader.onloadend = async () => {
-                        try {
-                            await cacheItem(audioSrc, reader.result);
-                        } catch (error) {
-                            console.error('Error caching audio:', error);
-                        }
-                    };
-                    reader.readAsDataURL(blob);
-                }
-
-                const cachedImage = await getCachedItem(imgSrc);
-                if (cachedImage) {
-                    console.log(`Image found in cache: ${imgSrc}`);
-                    musicImg.src = cachedImage;
-                } else {
-                    console.log(`Fetching and caching image: ${imgSrc}`);
-                    const response = await fetch(imgSrc);
-                    const blob = await response.blob();
-                    const reader = new FileReader();
-                    reader.onloadend = async () => {
-                        try {
-                            await cacheItem(imgSrc, reader.result);
-                        } catch (error) {
-                            console.error('Error caching image:', error);
-                        }
-                    };
-                    reader.readAsDataURL(blob);
-                }
-            } catch (error) {
-                console.error('Error loading track:', error);
-            }
         } else {
             console.error(`Invalid track index: ${index}`);
+        }
+    }
+
+    async function preloadTrack(audioSrc, imgSrc) {
+        try {
+            const cachedAudio = await getCachedItem(audioSrc);
+            if (cachedAudio) {
+                console.log(`Audio found in cache: ${audioSrc}`);
+                mainAudio.src = cachedAudio;
+            } else {
+                console.log(`Fetching and caching audio: ${audioSrc}`);
+                const audioBlob = await fetchAndCache(audioSrc);
+                mainAudio.src = URL.createObjectURL(audioBlob);
+            }
+
+            const cachedImage = await getCachedItem(imgSrc);
+            if (cachedImage) {
+                console.log(`Image found in cache: ${imgSrc}`);
+                musicImg.src = cachedImage;
+            } else {
+                console.log(`Fetching and caching image: ${imgSrc}`);
+                await fetchAndCache(imgSrc);
+            }
+        } catch (error) {
+            console.error('Error preloading track:', error);
+            throw error;
+        }
+    }
+
+    async function fetchAndCache(url) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                try {
+                    await cacheItem(url, reader.result);
+                } catch (error) {
+                    console.error('Error caching item:', error);
+                }
+            };
+            reader.readAsDataURL(blob);
+            return blob;
+        } catch (error) {
+            console.error('Error fetching and caching:', error);
+            throw error;
         }
     }
 
@@ -185,37 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const imgSrc = `https://colddb.netlify.app/images/${nextTrack.img}.jpg`;
 
             try {
-                const cachedAudio = await getCachedItem(audioSrc);
-                if (!cachedAudio) {
-                    const response = await fetch(audioSrc);
-                    const blob = await response.blob();
-                    const reader = new FileReader();
-                    reader.onloadend = async () => {
-                        try {
-                            await cacheItem(audioSrc, reader.result);
-                        } catch (error) {
-                            console.error('Error caching audio:', error);
-                        }
-                    };
-                    reader.readAsDataURL(blob);
-                }
-
-                const cachedImage = await getCachedItem(imgSrc);
-                if (!cachedImage) {
-                    const response = await fetch(imgSrc);
-                    const blob = await response.blob();
-                    const reader = new FileReader();
-                    reader.onloadend = async () => {
-                        try {
-                            await cacheItem(imgSrc, reader.result);
-                        } catch (error) {
-                            console.error('Error caching image:', error);
-                        }
-                    };
-                    reader.readAsDataURL(blob);
-                }
+                await preloadTrack(audioSrc, imgSrc);
             } catch (error) {
-                console.error('Error preloading track:', error);
+                console.error(`Error preloading track ${nextIndex}:`, error);
             }
         }
     }
@@ -270,7 +259,15 @@ document.addEventListener('DOMContentLoaded', () => {
             li.textContent = `${track.name} - ${track.artist}`;
             li.addEventListener('click', () => {
                 loadTrack(index);
-                if (isPlaying) mainAudio.play();
+                mainAudio.play()
+                    .then(() => {
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        isPlaying = true;
+                    })
+                    .catch(error => {
+                        console.error('Error playing audio:', error);
+                        musicName.textContent = 'Error playing audio';
+                    });
             });
             playlist.appendChild(li);
         });

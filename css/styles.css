@@ -182,8 +182,10 @@ body {
 }
 
 #playlistSearch {
-    width: 100%;
+    width: calc(100% - 40px); /* Increased subtraction to account for right padding */
+    max-width: 260px; /* Reduced max-width to maintain overall width */
     padding: 10px;
+    padding-right: 30px; /* Add right padding */
     margin-bottom: 10px;
     border: none;
     border-radius: 5px;
