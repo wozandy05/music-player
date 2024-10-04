@@ -4,17 +4,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerImage = document.getElementById('playerImage');
     const trackTitle = document.getElementById('trackTitle');
     const playPauseBtn = document.getElementById('playPauseBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
     function loadTrack() {
         audioPlayer.src = 'https://flacdb.netlify.app/audio/jb_ghost.mp3';
         playerImage.src = 'https://flacdb.netlify.app/img/jb_ghost.jpg';
         trackTitle.textContent = 'Ghost';
         playPauseBtn.innerHTML = '&#9658;'; // Play icon
+
+        audioPlayer.onerror = function() {
+            console.error('Error loading audio:', audioPlayer.error);
+            trackTitle.textContent = 'Error loading audio';
+        };
     }
 
     function playPause() {
         if (audioPlayer.paused) {
-            audioPlayer.play();
+            audioPlayer.play().catch(error => {
+                console.error('Error playing audio:', error);
+                trackTitle.textContent = 'Error playing audio';
+            });
             playPauseBtn.innerHTML = '&#10074;&#10074;'; // Pause icon
         } else {
             audioPlayer.pause();
@@ -23,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     playPauseBtn.addEventListener('click', playPause);
+    prevBtn.addEventListener('click', () => console.log('Previous track'));
+    nextBtn.addEventListener('click', () => console.log('Next track'));
 
     // Load the track when the page loads
     loadTrack();
