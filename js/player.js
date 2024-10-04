@@ -116,7 +116,8 @@ function updatePlaylist() {
     });
 }
 
-function togglePlaylist() {
+function togglePlaylist(event) {
+    event.stopPropagation();
     playlistContainer.classList.toggle('show');
 }
 
@@ -139,9 +140,11 @@ progressBar.parentElement.addEventListener("click", setProgress);
 togglePlaylistBtn.addEventListener("click", togglePlaylist);
 playlistSearchInput.addEventListener("input", filterPlaylist);
 
-// Restore close menu button functionality
-document.querySelector("#closePlaylist").addEventListener("click", () => {
-    playlistContainer.classList.remove('show');
+// Close playlist when clicking outside
+document.addEventListener('click', function(event) {
+    if (!playlistContainer.contains(event.target) && event.target !== togglePlaylistBtn) {
+        playlistContainer.classList.remove('show');
+    }
 });
 
 // Initialize
