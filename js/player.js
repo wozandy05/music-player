@@ -285,17 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
 
-        const colors = [
-            'rgba(173, 216, 230, 0.3)',
-            'rgba(135, 206, 235, 0.3)',
-            'rgba(176, 224, 230, 0.3)',
-            'rgba(175, 238, 238, 0.3)',
-            'rgba(230, 230, 250, 0.3)',
-            'rgba(216, 191, 216, 0.3)',
-        ];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        bubble.style.backgroundColor = randomColor;
-
         document.body.appendChild(bubble);
 
         setTimeout(() => {
