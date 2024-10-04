@@ -91,14 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadMusic(indexNumb) {
         console.log(`Loading music for index: ${indexNumb}`);
-        musicName.innerText = allMusic[indexNumb - 1].name;
-        musicArtist.innerText = allMusic[indexNumb - 1].artist;
-        const imgSrc = `https://colddb.netlify.app/images/${allMusic[indexNumb - 1].src}.jpg`;
-        const audioSrc = `https://colddb.netlify.app/audio/${allMusic[indexNumb - 1].src}.mp3`;
+        const track = allMusic[indexNumb - 1];
+        console.log(`Track details: `, track);
+        
+        musicName.innerText = track.name;
+        musicArtist.innerText = track.artist;
+        const imgSrc = `https://colddb.netlify.app/images/${track.src}.jpg`;
+        const audioSrc = `https://colddb.netlify.app/audio/${track.src}.mp3`;
         
         console.log(`Setting music image source: ${imgSrc}`);
-        musicImg.src = imgSrc;
         console.log(`Setting audio source: ${audioSrc}`);
+        
+        musicImg.src = imgSrc;
         mainAudio.src = audioSrc;
 
         musicImg.onerror = () => {
@@ -106,15 +110,19 @@ document.addEventListener('DOMContentLoaded', () => {
             musicImg.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
         };
 
-        mainAudio.onerror = () => {
-            console.error(`Error loading audio: ${audioSrc}`);
+        mainAudio.onerror = (e) => {
+            console.error(`Error loading audio: ${audioSrc}`, e);
             musicName.textContent = 'Error loading audio';
+            playNext();
         };
 
         try {
             await preloadTrack(audioSrc, imgSrc);
         } catch (error) {
             console.error('Error preloading track:', error);
+            const alternativeAudioSrc = `https://andy.largent.org/audio/${track.src}.mp3`;
+            console.log(`Attempting to load from alternative source: ${alternativeAudioSrc}`);
+            mainAudio.src = alternativeAudioSrc;
         }
     }
 
@@ -130,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error(`Error in loadTrack for index ${index}:`, error);
                 musicName.textContent = 'Error loading track';
+                playNext();
             }
         } else {
             console.error(`Invalid track index: ${index}`);
@@ -233,7 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function playNext() {
         const nextIndex = (currentTrackIndex + 1) % allMusic.length;
         loadTrack(nextIndex);
-        if (isPlaying) mainAudio.play();
+        if (isPlaying) {
+            mainAudio.play().catch(error => {
+                console.error('Error playing next track:', error);
+                playNext();
+            });
+        }
     }
 
     function playPrevious() {
