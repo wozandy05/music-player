@@ -31,15 +31,15 @@ function loadMusic(index) {
     musicName.textContent = music.name;
     musicArtist.textContent = music.artist;
     
-    const imgSrc = `https://colddb.netlify.app/images/${music.src}.jpg`;
-    const audioSrc = `https://colddb.netlify.app/audio/${music.src}.mp3`;
+    const imgSrc = `/img/${music.img}.jpg`;
+    const audioSrc = `/audio/${music.src}.mp3`;
     
     musicImg.src = imgSrc;
     mainAudio.src = audioSrc;
     
     musicImg.onerror = () => {
         console.error(`Error loading image: ${imgSrc}`);
-        musicImg.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
+        musicImg.src = '/img/placeholder.jpg';
     };
     
     mainAudio.onerror = (e) => {
@@ -131,7 +131,6 @@ function filterPlaylist() {
     });
 }
 
-// Bubble creation function
 function createBubble() {
     const bubble = document.createElement('div');
     bubble.classList.add('bubble');
@@ -150,10 +149,8 @@ function createBubble() {
     }, 4000);
 }
 
-// Create bubbles periodically
 setInterval(createBubble, 300);
 
-// Event Listeners
 playPauseBtn.addEventListener("click", () => isPlaying ? pauseMusic() : playMusic());
 prevBtn.addEventListener("click", prevMusic);
 nextBtn.addEventListener("click", nextMusic);
@@ -163,20 +160,17 @@ progressBar.parentElement.addEventListener("click", setProgress);
 togglePlaylistBtn.addEventListener("click", togglePlaylist);
 playlistSearchInput.addEventListener("input", filterPlaylist);
 
-// Close playlist when clicking outside
 document.addEventListener('click', function(event) {
     if (!playlistContainer.contains(event.target) && event.target !== togglePlaylistBtn) {
         playlistContainer.classList.remove('show');
     }
 });
 
-// Close playlist button functionality
 closePlaylistBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     playlistContainer.classList.remove('show');
 });
 
-// Initialize
 window.addEventListener("load", () => {
     loadMusic(musicIndex);
     updatePlaylist();

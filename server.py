@@ -20,6 +20,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def guess_type(self, path):
+        base, ext = os.path.splitext(path)
+        if ext in (".mp3", ".wav"):
+            return "audio/mpeg"
+        return super().guess_type(path)
+
 if __name__ == "__main__":
     print(f"Attempting to start server on port {PORT}")
     try:
