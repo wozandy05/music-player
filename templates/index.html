@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <title>Color Bubble Beats</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 </head>
 <body data-base-url="{{ base_url }}">
     <div class="player-container">
         <div class="player-image">
-            <img id="playerImage" src="" alt="Album Art">
+            <img id="playerImage" src="{{ url_for('static', filename='img/default-album-art.png') }}" alt="Album Art">
         </div>
         <h2 id="trackTitle">Loading...</h2>
         <div class="player-controls">
