@@ -18,22 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const durationDisplay = document.getElementById('duration');
     const playlistSearch = document.getElementById('playlistSearch');
 
-    const themes = {
-        neon: {
-            colors: ['#ff00ff', '#00ffff', '#ff0000', '#0000ff', '#00ff00', '#ffff00'],
-            opacity: '80',
-            size: { min: 10, max: 50 }
-        },
-        darkPurple: {
-            colors: ['#4B0082', '#8A2BE2', '#9400D3', '#9932CC', '#BA55D3'],
-            opacity: '80',
-            size: { min: 10, max: 50 }
-        }
-    };
-
-    let currentTheme = themes.darkPurple;
-
-    // Initialize IndexedDB
     let db;
     const dbName = 'MusicPlayerCache';
     const dbVersion = 1;
@@ -297,12 +281,20 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.style.left = `${Math.random() * 100}vw`;
         bubble.style.top = `${Math.random() * 100}vh`;
         
-        const size = Math.random() * (currentTheme.size.max - currentTheme.size.min) + currentTheme.size.min;
+        const size = Math.random() * (50 - 10) + 10;
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
 
-        const randomColor = currentTheme.colors[Math.floor(Math.random() * currentTheme.colors.length)];
-        bubble.style.backgroundColor = `${randomColor}${currentTheme.opacity}`;
+        const colors = [
+            'rgba(173, 216, 230, 0.3)',
+            'rgba(135, 206, 235, 0.3)',
+            'rgba(176, 224, 230, 0.3)',
+            'rgba(175, 238, 238, 0.3)',
+            'rgba(230, 230, 250, 0.3)',
+            'rgba(216, 191, 216, 0.3)',
+        ];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        bubble.style.backgroundColor = randomColor;
 
         document.body.appendChild(bubble);
 

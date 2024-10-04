@@ -6,15 +6,15 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #000033;
     overflow: hidden;
     position: relative;
 }
 
 .player-container {
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.9);
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     padding: 20px;
     width: 300px;
     text-align: center;
@@ -165,6 +165,7 @@ body {
     animation: float 4s ease-in-out infinite;
     z-index: 1;
     pointer-events: none;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 @keyframes float {
@@ -173,7 +174,7 @@ body {
         opacity: 0;
     }
     50% {
-        opacity: 1;
+        opacity: 0.7;
     }
     100% {
         transform: translateY(-20vh) scale(1);
@@ -182,10 +183,10 @@ body {
 }
 
 #playlistSearch {
-    width: calc(100% - 40px); /* Increased subtraction to account for right padding */
-    max-width: 260px; /* Reduced max-width to maintain overall width */
+    width: calc(100% - 40px);
+    max-width: 260px;
     padding: 10px;
-    padding-right: 30px; /* Add right padding */
+    padding-right: 30px;
     margin-bottom: 10px;
     border: none;
     border-radius: 5px;
