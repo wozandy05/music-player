@@ -26,13 +26,12 @@ function loadMusic(index) {
     }
     
     const music = allMusic[index];
-    console.log(`Loading music: ${music.name} by ${music.artist}`);
     
     musicName.textContent = music.name;
     musicArtist.textContent = music.artist;
     
-    const imgSrc = `https://colddb.netlify.app/images/${music.src}.jpg`;
-    const audioSrc = `https://colddb.netlify.app/audio/${music.src}.mp3`;
+    const imgSrc = `https://gitlab.com/ljf7/db/-/raw/f28c8b693884e943fa408478af7f98bf72d308ab/images/${music.src}.jpg`;
+    const audioSrc = `https://gitlab.com/ljf7/db/-/raw/f28c8b693884e943fa408478af7f98bf72d308ab/audio/${music.src}.mp3`;
     
     musicImg.src = imgSrc;
     mainAudio.src = audioSrc;
